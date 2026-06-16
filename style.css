@@ -1,0 +1,177 @@
+:root {
+  color-scheme: dark;
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background: #10131a;
+  color: #f8fafc;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  min-height: 100vh;
+  margin: 0;
+  display: grid;
+  place-items: center;
+  padding: clamp(1rem, 3vw, 2.5rem);
+  background:
+    linear-gradient(135deg, rgba(57, 190, 168, 0.12), transparent 32rem),
+    linear-gradient(315deg, rgba(247, 114, 73, 0.12), transparent 28rem),
+    #10131a;
+}
+
+button {
+  width: 3.25rem;
+  height: 3.25rem;
+  border: 1px solid #3f4756;
+  border-radius: 8px;
+  background: #202634;
+  color: #f8fafc;
+  font: inherit;
+  font-size: 1.45rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+button:hover,
+button:focus-visible {
+  border-color: #58d2bd;
+  outline: none;
+}
+
+.game-shell {
+  width: min(100%, 54rem);
+  display: grid;
+  grid-template-columns: minmax(18rem, 24rem) minmax(13rem, 17rem);
+  gap: clamp(1rem, 3vw, 2rem);
+  align-items: start;
+}
+
+.play-area {
+  display: grid;
+  gap: 1rem;
+  justify-items: center;
+}
+
+#board {
+  width: min(100%, 23rem);
+  aspect-ratio: 1 / 2;
+  height: auto;
+  display: block;
+  border: 1px solid #384253;
+  border-radius: 8px;
+  background: #080b10;
+  box-shadow: 0 1.5rem 4rem rgba(0, 0, 0, 0.32);
+}
+
+.mobile-controls {
+  width: min(100%, 23rem);
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.5rem;
+}
+
+.mobile-controls button {
+  width: 100%;
+  height: 3.5rem;
+}
+
+.hud {
+  min-width: 0;
+  display: grid;
+  gap: 1.25rem;
+  padding-top: 0.25rem;
+}
+
+h1 {
+  margin: 0;
+  font-size: clamp(2.5rem, 8vw, 4.75rem);
+  line-height: 0.95;
+  letter-spacing: 0;
+}
+
+dl {
+  margin: 0;
+  display: grid;
+  gap: 0.75rem;
+}
+
+dl div {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-bottom: 0.65rem;
+  border-bottom: 1px solid #2e3746;
+}
+
+dt,
+.next-piece span {
+  color: #a9b5c7;
+  font-size: 0.82rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
+
+dd {
+  margin: 0;
+  font-size: 1.2rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.next-piece {
+  display: grid;
+  gap: 0.6rem;
+}
+
+#next {
+  width: 7.5rem;
+  height: 7.5rem;
+  border: 1px solid #384253;
+  border-radius: 8px;
+  background: #080b10;
+}
+
+.actions {
+  display: flex;
+  gap: 0.65rem;
+}
+
+@media (max-width: 44rem) {
+  body {
+    align-items: start;
+  }
+
+  .game-shell {
+    grid-template-columns: 1fr;
+    max-width: 24rem;
+  }
+
+  .hud {
+    order: -1;
+    grid-template-columns: 1fr auto;
+    align-items: end;
+  }
+
+  .hud h1 {
+    grid-column: 1 / -1;
+  }
+
+  .hud dl {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.5rem;
+  }
+
+  .hud dl div {
+    display: grid;
+    gap: 0.25rem;
+  }
+
+  .next-piece {
+    display: none;
+  }
+
+  .actions {
+    justify-content: end;
+  }
+}
