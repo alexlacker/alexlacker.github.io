@@ -307,12 +307,15 @@ function togglePause() {
 }
 
 document.addEventListener("keydown", (event) => {
+  if (["ArrowLeft", "ArrowRight", "ArrowDown", "ArrowUp", "Space"].includes(event.code)) {
+    event.preventDefault();
+  }
+
   if (event.key === "ArrowLeft") movePiece(-1);
   if (event.key === "ArrowRight") movePiece(1);
   if (event.key === "ArrowDown") dropPiece();
   if (event.key === "ArrowUp" || event.key.toLowerCase() === "x") rotatePiece();
   if (event.code === "Space") {
-    event.preventDefault();
     hardDrop();
   }
   if (event.key.toLowerCase() === "p") togglePause();

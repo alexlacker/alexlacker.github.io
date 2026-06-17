@@ -5,16 +5,24 @@
   color: #f8fafc;
 }
 
+html,
+body {
+  height: 100%;
+  overflow: hidden;
+}
+
 * {
   box-sizing: border-box;
 }
 
 body {
-  min-height: 100vh;
+  min-height: 100dvh;
   margin: 0;
   display: grid;
   place-items: center;
-  padding: clamp(1rem, 3vw, 2.5rem);
+  padding: clamp(0.6rem, 2.5vh, 1.4rem);
+  overscroll-behavior: none;
+  touch-action: manipulation;
   background:
     linear-gradient(135deg, rgba(57, 190, 168, 0.12), transparent 32rem),
     linear-gradient(315deg, rgba(247, 114, 73, 0.12), transparent 28rem),
@@ -42,9 +50,10 @@ button:focus-visible {
 
 .game-shell {
   width: min(100%, 54rem);
+  max-height: calc(100dvh - clamp(1.2rem, 5vh, 2.8rem));
   display: grid;
-  grid-template-columns: minmax(18rem, 24rem) minmax(13rem, 17rem);
-  gap: clamp(1rem, 3vw, 2rem);
+  grid-template-columns: minmax(14rem, min(24rem, calc((100dvh - 3rem) / 2))) minmax(13rem, 17rem);
+  gap: clamp(0.75rem, 3vw, 2rem);
   align-items: start;
 }
 
@@ -55,7 +64,7 @@ button:focus-visible {
 }
 
 #board {
-  width: min(100%, 23rem);
+  width: min(100%, 23rem, calc((100dvh - 7.2rem) / 2));
   aspect-ratio: 1 / 2;
   height: auto;
   display: block;
@@ -66,7 +75,7 @@ button:focus-visible {
 }
 
 .mobile-controls {
-  width: min(100%, 23rem);
+  width: min(100%, 23rem, calc((100dvh - 7.2rem) / 2));
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 0.5rem;
@@ -144,13 +153,16 @@ dd {
 
   .game-shell {
     grid-template-columns: 1fr;
-    max-width: 24rem;
+    max-width: min(24rem, 100%);
+    max-height: calc(100dvh - 1.2rem);
+    gap: 0.65rem;
   }
 
   .hud {
     order: -1;
     grid-template-columns: 1fr auto;
     align-items: end;
+    gap: 0.65rem;
   }
 
   .hud h1 {
@@ -173,5 +185,14 @@ dd {
 
   .actions {
     justify-content: end;
+  }
+
+  #board,
+  .mobile-controls {
+    width: min(100%, calc((100dvh - 9.9rem) / 2));
+  }
+
+  .mobile-controls button {
+    height: 3rem;
   }
 }
