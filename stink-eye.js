@@ -203,6 +203,41 @@ function bounceShurikenOffEye(shuriken) {
   shuriken.y = eye.y + normalY * minDistance;
 }
 
+function bounceShurikensOffEachOther() {
+  for (let firstIndex = 0; firstIndex < shurikens.length; firstIndex += 1) {
+    for (let secondIndex = firstIndex + 1; secondIndex < shurikens.length; secondIndex += 1) {
+      const first = shurikens[firstIndex];
+      const second = shurikens[secondIndex];
+      const dx = second.x - first.x;
+      const dy = second.y - first.y;
+      const minDistance = first.radius + second.radius;
+      const distance = Math.hypot(dx, dy);
+
+      if (distance >= minDistance) continue;
+
+      const normalX = distance === 0 ? 1 : dx / distance;
+      const normalY = distance === 0 ? 0 : dy / distance;
+      const overlap = minDistance - distance;
+
+      first.x -= normalX * overlap / 2;
+      first.y -= normalY * overlap / 2;
+      second.x += normalX * overlap / 2;
+      second.y += normalY * overlap / 2;
+
+      const relativeVelocityX = second.speedX - first.speedX;
+      const relativeVelocityY = second.speedY - first.speedY;
+      const closingSpeed = relativeVelocityX * normalX + relativeVelocityY * normalY;
+
+      if (closingSpeed >= 0) continue;
+
+      first.speedX += closingSpeed * normalX;
+      first.speedY += closingSpeed * normalY;
+      second.speedX -= closingSpeed * normalX;
+      second.speedY -= closingSpeed * normalY;
+    }
+  }
+}
+
 function updateExplosions(dt, dtScale) {
   explosions.forEach((explosion) => {
     if (explosion.radius < explosion.targetRadius) {
@@ -280,6 +315,7 @@ function updateGame(dt) {
 
   if (!explosionActive) {
     updateShurikens(dtScale, dt);
+    bounceShurikensOffEachOther();
     const remaining = [];
 
     shurikens.forEach((shuriken) => {
