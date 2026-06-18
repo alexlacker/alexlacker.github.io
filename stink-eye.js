@@ -29,8 +29,12 @@ const COLORS = {
 };
 
 const gameArea = { left: 40, top: 40, right: WIDTH - 40, bottom: HEIGHT - 40 };
-const eyeRadius = 50;
-const shurikenRadius = 18;
+const eyeRadius = 42;
+const irisRadius = 15;
+const pupilRadius = 8;
+const shurikenRadius = 15;
+const playerDotRadius = 8;
+const playerRingRadius = 18;
 
 let eye;
 let shurikens;
@@ -260,12 +264,12 @@ function updateGame(dt) {
     eye.y += eye.speedY * dtScale;
   }
 
-  const pupilTargetX = clamp((pointer.x - eye.x) * 0.12, -22, 22);
-  const pupilTargetY = clamp((pointer.y - eye.y) * 0.12, -22, 22);
+  const pupilTargetX = clamp((pointer.x - eye.x) * 0.12, -19, 19);
+  const pupilTargetY = clamp((pointer.y - eye.y) * 0.12, -19, 19);
   eye.pupilX += (pupilTargetX - eye.pupilX) * 0.25;
   eye.pupilY += (pupilTargetY - eye.pupilY) * 0.25;
-  eye.pupilX = clamp(eye.pupilX + randomRange(-2.5, 2.5), -24, 24);
-  eye.pupilY = clamp(eye.pupilY + randomRange(-2.5, 2.5), -24, 24);
+  eye.pupilX = clamp(eye.pupilX + randomRange(-2.2, 2.2), -21, 21);
+  eye.pupilY = clamp(eye.pupilY + randomRange(-2.2, 2.2), -21, 21);
 
   if (touchingCircle(pointer.x, pointer.y, eye.x, eye.y, eyeRadius)) {
     endGame("You were given the stink eye");
@@ -366,12 +370,12 @@ function drawEye() {
 
   ctx.fillStyle = COLORS.iris;
   ctx.beginPath();
-  ctx.arc(eye.x + eye.pupilX, eye.y + eye.pupilY, 18, 0, Math.PI * 2);
+  ctx.arc(eye.x + eye.pupilX, eye.y + eye.pupilY, irisRadius, 0, Math.PI * 2);
   ctx.fill();
 
   ctx.fillStyle = COLORS.pupil;
   ctx.beginPath();
-  ctx.arc(eye.x + eye.pupilX, eye.y + eye.pupilY, 9, 0, Math.PI * 2);
+  ctx.arc(eye.x + eye.pupilX, eye.y + eye.pupilY, pupilRadius, 0, Math.PI * 2);
   ctx.fill();
 }
 
@@ -382,10 +386,10 @@ function drawCursor() {
   ctx.fillStyle = COLORS.cursor;
   ctx.lineWidth = 2;
   ctx.beginPath();
-  ctx.arc(pointer.x, pointer.y, 10, 0, Math.PI * 2);
+  ctx.arc(pointer.x, pointer.y, playerDotRadius, 0, Math.PI * 2);
   ctx.fill();
   ctx.beginPath();
-  ctx.arc(pointer.x, pointer.y, 22, 0, Math.PI * 2);
+  ctx.arc(pointer.x, pointer.y, playerRingRadius, 0, Math.PI * 2);
   ctx.stroke();
 }
 

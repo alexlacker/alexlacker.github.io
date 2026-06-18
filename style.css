@@ -323,7 +323,7 @@ dd {
 
 .stink-eye-page {
   padding: 0;
-  cursor: crosshair;
+  cursor: none;
 }
 
 .arena-shell {
@@ -347,6 +347,7 @@ dd {
   height: min(100dvh, calc(100vw * 3 / 4));
   display: block;
   background: #16181c;
+  cursor: none;
   touch-action: none;
 }
 
