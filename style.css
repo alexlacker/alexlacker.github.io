@@ -174,8 +174,8 @@ button:focus-visible {
   left: 50%;
   top: 50%;
   border-radius: 50%;
-  background: #50aadc;
-  box-shadow: inset 0 0 0 0.42rem #0a0c10;
+  background: #0a0c10;
+  box-shadow: inset 0 0 0 0.42rem #50aadc;
   transform: translate(-50%, -50%);
 }
 
