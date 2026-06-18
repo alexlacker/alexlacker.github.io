@@ -29,12 +29,14 @@ const COLORS = {
 };
 
 const gameArea = { left: 40, top: 40, right: WIDTH - 40, bottom: HEIGHT - 40 };
-const eyeRadius = 42;
-const irisRadius = 15;
-const pupilRadius = 8;
-const shurikenRadius = 15;
-const playerDotRadius = 8;
-const playerRingRadius = 18;
+const eyeRadius = 38;
+const irisRadius = 14;
+const pupilRadius = 7;
+const shurikenRadius = 13;
+const playerDotRadius = 7;
+const playerRingRadius = 16;
+const explosionTargetRadius = 300;
+const explosionGrowthSpeed = 1.8;
 
 let eye;
 let shurikens;
@@ -264,12 +266,12 @@ function updateGame(dt) {
     eye.y += eye.speedY * dtScale;
   }
 
-  const pupilTargetX = clamp((pointer.x - eye.x) * 0.12, -19, 19);
-  const pupilTargetY = clamp((pointer.y - eye.y) * 0.12, -19, 19);
+  const pupilTargetX = clamp((pointer.x - eye.x) * 0.12, -17, 17);
+  const pupilTargetY = clamp((pointer.y - eye.y) * 0.12, -17, 17);
   eye.pupilX += (pupilTargetX - eye.pupilX) * 0.25;
   eye.pupilY += (pupilTargetY - eye.pupilY) * 0.25;
-  eye.pupilX = clamp(eye.pupilX + randomRange(-2.2, 2.2), -21, 21);
-  eye.pupilY = clamp(eye.pupilY + randomRange(-2.2, 2.2), -21, 21);
+  eye.pupilX = clamp(eye.pupilX + randomRange(-2, 2), -19, 19);
+  eye.pupilY = clamp(eye.pupilY + randomRange(-2, 2), -19, 19);
 
   if (touchingCircle(pointer.x, pointer.y, eye.x, eye.y, eyeRadius)) {
     endGame("You were given the stink eye");
@@ -287,8 +289,8 @@ function updateGame(dt) {
             x: shuriken.x,
             y: shuriken.y,
             radius: 0,
-            targetRadius: eyeRadius * 9,
-            growthSpeed: 2.25,
+            targetRadius: explosionTargetRadius,
+            growthSpeed: explosionGrowthSpeed,
             timer: EXPLOSION_HOLD_TIME
           });
           return;

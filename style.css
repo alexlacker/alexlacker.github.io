@@ -323,7 +323,11 @@ dd {
 
 .stink-eye-page {
   padding: 0;
-  cursor: none;
+}
+
+.stink-eye-page,
+.stink-eye-page * {
+  cursor: none !important;
 }
 
 .arena-shell {
