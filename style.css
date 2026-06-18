@@ -179,6 +179,25 @@ button:focus-visible {
   transform: translate(-50%, -50%);
 }
 
+.shuriken-mark {
+  position: absolute;
+  width: 1.55rem;
+  height: 1.55rem;
+  right: 0;
+  top: 0.25rem;
+  background: #bec3cd;
+  clip-path: polygon(50% 0, 62% 36%, 100% 50%, 62% 64%, 50% 100%, 38% 64%, 0 50%, 38% 36%);
+  transform: rotate(24deg);
+}
+
+.shuriken-mark::before {
+  content: "";
+  position: absolute;
+  inset: 0.52rem;
+  border-radius: 50%;
+  background: #41464e;
+}
+
 .game-name {
   font-size: 1.1rem;
   font-weight: 700;
