@@ -167,6 +167,8 @@ function makeShuriken() {
 
 function updateShurikens(dtScale, dt) {
   shurikens.forEach((shuriken) => {
+    shuriken.radius = shurikenRadius;
+
     if (shuriken.eyeHitCooldown > 0) shuriken.eyeHitCooldown -= dt;
 
     shuriken.x += shuriken.speedX * dtScale;
@@ -382,8 +384,10 @@ function drawTimers() {
 
 function drawShuriken(shuriken) {
   const points = [];
+  const radius = shurikenRadius;
+
   for (let index = 0; index < 8; index += 1) {
-    const distance = index % 2 === 0 ? shuriken.radius : shuriken.radius * 0.35;
+    const distance = index % 2 === 0 ? radius : radius * 0.35;
     const angle = shuriken.angle + index * Math.PI * 2 / 8;
     points.push([shuriken.x + Math.cos(angle) * distance, shuriken.y + Math.sin(angle) * distance]);
   }
