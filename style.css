@@ -325,8 +325,8 @@ dd {
   padding: 0;
 }
 
-.stink-eye-page,
-.stink-eye-page * {
+.stink-eye-page.hide-native-cursor,
+.stink-eye-page.hide-native-cursor * {
   cursor: none !important;
 }
 
@@ -351,7 +351,6 @@ dd {
   height: min(100dvh, calc(100vw * 3 / 4));
   display: block;
   background: #16181c;
-  cursor: none;
   touch-action: none;
 }
 

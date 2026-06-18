@@ -472,6 +472,8 @@ function drawEndScreen(dt) {
 }
 
 function drawFrame(dt) {
+  document.body.classList.toggle("hide-native-cursor", state === "playing");
+
   if (state === "start") {
     playButton = drawButton("play");
   } else if (state === "playing") {
