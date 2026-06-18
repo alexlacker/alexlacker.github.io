@@ -3,48 +3,27 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Tetris</title>
+    <title>Alex Lacker Games</title>
     <link rel="stylesheet" href="style.css">
   </head>
-  <body>
-    <main class="game-shell">
-      <section class="play-area" aria-label="Tetris game">
-        <canvas id="board" width="300" height="600"></canvas>
-        <div class="mobile-controls" aria-label="Touch controls">
-          <button type="button" data-action="left" aria-label="Move left">&#8592;</button>
-          <button type="button" data-action="rotate" aria-label="Rotate">&#8635;</button>
-          <button type="button" data-action="right" aria-label="Move right">&#8594;</button>
-          <button type="button" data-action="drop" aria-label="Drop">&#8595;</button>
-        </div>
-      </section>
+  <body class="menu-page">
+    <main class="menu-shell">
+      <header class="menu-header">
+        <h1>Games</h1>
+        <p>Pick a game.</p>
+      </header>
 
-      <aside class="hud" aria-label="Game status">
-        <h1>Tetris</h1>
-        <dl>
-          <div>
-            <dt>Score</dt>
-            <dd id="score">0</dd>
-          </div>
-          <div>
-            <dt>Lines</dt>
-            <dd id="lines">0</dd>
-          </div>
-          <div>
-            <dt>Level</dt>
-            <dd id="level">1</dd>
-          </div>
-        </dl>
-        <div class="next-piece">
-          <span>Next</span>
-          <canvas id="next" width="120" height="120"></canvas>
-        </div>
-        <div class="actions">
-          <button type="button" id="pause" aria-label="Pause or resume">&#10073;&#10073;</button>
-          <button type="button" id="restart" aria-label="Restart">&#8634;</button>
-        </div>
-      </aside>
+      <nav class="game-grid" aria-label="Game menu">
+        <a class="game-tile" href="games/tetris/" aria-label="Play Tetris">
+          <span class="game-icon tetris-icon" aria-hidden="true">
+            <span></span>
+            <span></span>
+            <span></span>
+            <span></span>
+          </span>
+          <span class="game-name">Tetris</span>
+        </a>
+      </nav>
     </main>
-
-    <script src="tetris.js"></script>
   </body>
 </html>

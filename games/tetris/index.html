@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Tetris</title>
+    <link rel="stylesheet" href="../../style.css">
+  </head>
+  <body class="game-page">
+    <main class="game-shell">
+      <section class="play-area" aria-label="Tetris game">
+        <canvas id="board" width="300" height="600"></canvas>
+        <div class="mobile-controls" aria-label="Touch controls">
+          <button type="button" data-action="left" aria-label="Move left">&#8592;</button>
+          <button type="button" data-action="rotate" aria-label="Rotate">&#8635;</button>
+          <button type="button" data-action="right" aria-label="Move right">&#8594;</button>
+          <button type="button" data-action="drop" aria-label="Drop">&#8595;</button>
+        </div>
+      </section>
+
+      <aside class="hud" aria-label="Game status">
+        <a class="back-link" href="../../" aria-label="Back to games">&#8592;</a>
+        <h1>Tetris</h1>
+        <dl>
+          <div>
+            <dt>Score</dt>
+            <dd id="score">0</dd>
+          </div>
+          <div>
+            <dt>Lines</dt>
+            <dd id="lines">0</dd>
+          </div>
+          <div>
+            <dt>Level</dt>
+            <dd id="level">1</dd>
+          </div>
+        </dl>
+        <div class="next-piece">
+          <span>Next</span>
+          <canvas id="next" width="120" height="120"></canvas>
+        </div>
+        <div class="actions">
+          <button type="button" id="pause" aria-label="Pause or resume">&#10073;&#10073;</button>
+          <button type="button" id="restart" aria-label="Restart">&#8634;</button>
+        </div>
+      </aside>
+    </main>
+
+    <script src="../../tetris.js"></script>
+  </body>
+</html>
