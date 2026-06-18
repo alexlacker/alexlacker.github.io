@@ -149,6 +149,42 @@ button:focus-visible {
   background: #ef4444;
 }
 
+.stink-eye-icon {
+  position: relative;
+  display: block;
+}
+
+.eye-mark {
+  position: absolute;
+  inset: 0.7rem 0.2rem 1.1rem;
+  border: 0.22rem solid #d23c46;
+  border-radius: 50%;
+  background: #f5f5eb;
+}
+
+.eye-mark::before {
+  content: "";
+  position: absolute;
+  width: 1.45rem;
+  height: 1.45rem;
+  left: 50%;
+  top: 50%;
+  border-radius: 50%;
+  background: #50aadc;
+  box-shadow: inset 0 0 0 0.46rem #0a0c10;
+  transform: translate(-50%, -50%);
+}
+
+.shuriken-mark {
+  position: absolute;
+  width: 1.55rem;
+  height: 1.55rem;
+  right: 0;
+  bottom: 0;
+  background: #bec3cd;
+  clip-path: polygon(50% 0, 62% 36%, 100% 50%, 62% 64%, 50% 100%, 38% 64%, 0 50%, 38% 36%);
+}
+
 .game-name {
   font-size: 1.1rem;
   font-weight: 700;
@@ -270,6 +306,35 @@ dd {
 .actions {
   display: flex;
   gap: 0.65rem;
+}
+
+.stink-eye-page {
+  padding: 0;
+  cursor: crosshair;
+}
+
+.arena-shell {
+  width: 100vw;
+  height: 100dvh;
+  display: grid;
+  place-items: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.arena-back {
+  position: fixed;
+  z-index: 2;
+  left: clamp(0.75rem, 2vw, 1.25rem);
+  top: clamp(0.75rem, 2vw, 1.25rem);
+}
+
+#stink-eye {
+  width: min(100vw, calc(100dvh * 4 / 3));
+  height: min(100dvh, calc(100vw * 3 / 4));
+  display: block;
+  background: #16181c;
+  touch-action: none;
 }
 
 @media (max-width: 44rem) {
