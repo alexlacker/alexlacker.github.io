@@ -375,9 +375,9 @@ function drawText(text, x, y, size, color, align = "center", weight = 700, famil
 
 function drawTimers() {
   ctx.textAlign = "right";
-  drawText(`current ${formatTime(playTimer)}`, WIDTH - 60, 50, 16, COLORS.gold, "right", 700, "Consolas, monospace");
-  drawText(`daily ${dailyBest ? formatTime(dailyBest) : "0.00"}`, WIDTH - 60, 73, 16, COLORS.gold, "right", 700, "Consolas, monospace");
-  drawText(`all-time ${personalBest ? formatTime(personalBest) : "0.00"}`, WIDTH - 60, 96, 16, COLORS.gold, "right", 700, "Consolas, monospace");
+  drawText(`current ${formatTime(playTimer)}`, WIDTH - 60, 54, 22, COLORS.gold, "right", 700, "Consolas, monospace");
+  drawText(`daily ${dailyBest ? formatTime(dailyBest) : "0.00"}`, WIDTH - 60, 86, 22, COLORS.gold, "right", 700, "Consolas, monospace");
+  drawText(`all-time ${personalBest ? formatTime(personalBest) : "0.00"}`, WIDTH - 60, 118, 22, COLORS.gold, "right", 700, "Consolas, monospace");
 }
 
 function drawShuriken(shuriken) {
