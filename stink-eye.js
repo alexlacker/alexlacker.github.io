@@ -224,16 +224,18 @@ function bounceShurikensOffEachOther() {
       second.x += normalX * overlap / 2;
       second.y += normalY * overlap / 2;
 
-      const relativeVelocityX = second.speedX - first.speedX;
-      const relativeVelocityY = second.speedY - first.speedY;
-      const closingSpeed = relativeVelocityX * normalX + relativeVelocityY * normalY;
+      const firstDot = first.speedX * normalX + first.speedY * normalY;
+      const secondDot = second.speedX * normalX + second.speedY * normalY;
 
-      if (closingSpeed >= 0) continue;
+      if (firstDot > 0) {
+        first.speedX -= 2 * firstDot * normalX;
+        first.speedY -= 2 * firstDot * normalY;
+      }
 
-      first.speedX += closingSpeed * normalX;
-      first.speedY += closingSpeed * normalY;
-      second.speedX -= closingSpeed * normalX;
-      second.speedY -= closingSpeed * normalY;
+      if (secondDot < 0) {
+        second.speedX -= 2 * secondDot * normalX;
+        second.speedY -= 2 * secondDot * normalY;
+      }
     }
   }
 }
