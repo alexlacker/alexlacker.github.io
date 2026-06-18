@@ -156,72 +156,27 @@ button:focus-visible {
 
 .eye-mark {
   position: absolute;
-  width: 2.55rem;
-  height: 1.95rem;
-  left: 0.1rem;
-  top: 1.18rem;
-  border: 0.22rem solid #d23c46;
-  border-radius: 50% 50% 46% 46%;
+  width: 3.7rem;
+  height: 3.7rem;
+  left: 50%;
+  top: 50%;
+  border: 0.2rem solid #d23c46;
+  border-radius: 50%;
   background: #f5f5eb;
-  transform: rotate(-8deg);
+  transform: translate(-50%, -50%);
 }
 
 .eye-mark::before {
   content: "";
   position: absolute;
-  width: 1.45rem;
-  height: 1.45rem;
+  width: 1.35rem;
+  height: 1.35rem;
   left: 50%;
   top: 50%;
   border-radius: 50%;
   background: #50aadc;
-  box-shadow: inset 0 0 0 0.46rem #0a0c10;
+  box-shadow: inset 0 0 0 0.42rem #0a0c10;
   transform: translate(-50%, -50%);
-}
-
-.stink-eye-icon::before,
-.stink-eye-icon::after {
-  content: "";
-  position: absolute;
-  height: 0.18rem;
-  border-radius: 999px;
-  background: repeating-linear-gradient(
-    90deg,
-    #e6b437 0 0.48rem,
-    transparent 0.48rem 0.82rem
-  );
-  transform: rotate(-22deg);
-}
-
-.stink-eye-icon::before {
-  width: 2.65rem;
-  right: 1.2rem;
-  top: 1.2rem;
-}
-
-.stink-eye-icon::after {
-  width: 2.1rem;
-  right: 1.45rem;
-  top: 2rem;
-}
-
-.shuriken-mark {
-  position: absolute;
-  width: 1.65rem;
-  height: 1.65rem;
-  right: 0.1rem;
-  top: 0.65rem;
-  background: #bec3cd;
-  clip-path: polygon(50% 0, 62% 36%, 100% 50%, 62% 64%, 50% 100%, 38% 64%, 0 50%, 38% 36%);
-  transform: rotate(24deg);
-}
-
-.shuriken-mark::before {
-  content: "";
-  position: absolute;
-  inset: 0.56rem;
-  border-radius: 50%;
-  background: #41464e;
 }
 
 .game-name {
