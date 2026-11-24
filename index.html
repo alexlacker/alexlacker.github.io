@@ -40,8 +40,8 @@
 <body>
   <div id="game"></div>
   <div id="hud">
-    <div id="top-left"><div class="eyebrow">LIVE FIRE // SIMULATION 01</div><div class="status">ROOM CLEAR</div><div id="hint">WASD move · mouse look · hold click to fire · R reload</div></div>
-    <div id="top-right">AR-15 <span>SEMI / AUTO TRAINING</span></div>
+    <div id="top-left"><div class="eyebrow">LIVE FIRE // SIMULATION 01</div><div class="status">ROOM CLEAR</div><div id="hint">WASD move · mouse look · scroll switch · hold click to fire · R reload</div></div>
+    <div id="top-right"><div id="mode-label">AR-15</div><span id="mode-sub">SEMI / AUTO TRAINING</span></div>
     <div id="crosshair"></div>
     <div id="toast"></div>
     <div id="bottom-right"><div id="ammo">30 <small>/ 120</small></div><div id="weapon-label">CARBINE // READY</div></div>
@@ -64,6 +64,8 @@
     const toast = document.getElementById("toast");
     const ammoReadout = document.getElementById("ammo");
     const weaponLabel = document.getElementById("weapon-label");
+    const modeLabel = document.getElementById("mode-label");
+    const modeSub = document.getElementById("mode-sub");
     const scene = new THREE.Scene();
     scene.background = new THREE.Color(0x070a0f);
     scene.fog = new THREE.Fog(0x070a0f, 8, 25);
@@ -112,8 +114,11 @@
     const keys = new Set();
     let locked = false;
     let shooting = false;
-    let ammo = 30;
-    let reserve = 120;
+    const weapons = {
+      ar: { name: "AR-15", label: "CARBINE", ammo: 30, reserve: 120, capacity: 30, fireDelay: 105, automatic: true, pellets: 1, spread: 0, muzzleZ: -1.53, color: 0xffdf8a },
+      shotgun: { name: "SHOTGUN", label: "12 GAUGE", ammo: 8, reserve: 48, capacity: 8, fireDelay: 720, automatic: false, pellets: 8, spread: .072, muzzleZ: -1.55, color: 0xffb86c }
+    };
+    let activeWeapon = "ar";
     let nextShot = 0;
     let toastTimer = 0;
 
@@ -121,12 +126,16 @@
     weapon.position.set(.28, -.25, -.52);
     camera.add(weapon);
     scene.add(camera);
+    const arModel = new THREE.Group();
+    const shotgunModel = new THREE.Group();
+    shotgunModel.visible = false;
+    weapon.add(arModel, shotgunModel);
     const gunMetal = new THREE.MeshStandardMaterial({ color: 0x171a1d, roughness: .45, metalness: .78 });
     const gunDark = new THREE.MeshStandardMaterial({ color: 0x080a0c, roughness: .62, metalness: .55 });
     const polymer = new THREE.MeshStandardMaterial({ color: 0x242a2d, roughness: .82, metalness: .08 });
     const skin = new THREE.MeshStandardMaterial({ color: 0x9e6b4f, roughness: .9 });
     const sleeve = new THREE.MeshStandardMaterial({ color: 0x4b5960, roughness: .95 });
-    function part(geometry, material, position, rotation = [0, 0, 0]) { const mesh = new THREE.Mesh(geometry, material); mesh.position.set(...position); mesh.rotation.set(...rotation); mesh.castShadow = true; weapon.add(mesh); return mesh; }
+    function part(geometry, material, position, rotation = [0, 0, 0], parent = arModel) { const mesh = new THREE.Mesh(geometry, material); mesh.position.set(...position); mesh.rotation.set(...rotation); mesh.castShadow = true; parent.add(mesh); return mesh; }
     part(new THREE.BoxGeometry(.18, .18, .58), gunMetal, [0, 0, 0]);
     part(new THREE.BoxGeometry(.14, .14, .4), polymer, [0, .01, -.46]);
     part(new THREE.BoxGeometry(.12, .16, .34), polymer, [0, -.02, .33]);
@@ -137,31 +146,46 @@
     part(new THREE.BoxGeometry(.08, .06, .42), gunDark, [0, .15, -.1]);
     part(new THREE.BoxGeometry(.035, .07, .1), gunMetal, [0, .2, -.34]);
     part(new THREE.BoxGeometry(.04, .1, .06), gunMetal, [0, .22, -.84]);
-    const leftSleeve = part(new THREE.CylinderGeometry(.09, .11, .42, 8), sleeve, [-.19, -.25, -.34], [0, 0, -.44]);
-    const rightSleeve = part(new THREE.CylinderGeometry(.09, .11, .38, 8), sleeve, [.18, -.27, -.06], [0, 0, .44]);
-    part(new THREE.CylinderGeometry(.065, .075, .3, 8), skin, [-.12, -.16, -.57], [0, 0, -.55]);
-    part(new THREE.CylinderGeometry(.065, .075, .27, 8), skin, [.1, -.17, -.19], [0, 0, .55]);
+    part(new THREE.BoxGeometry(.17, .18, .44), gunDark, [0, -.01, .33], [0, 0, 0], shotgunModel);
+    part(new THREE.BoxGeometry(.18, .17, .56), polymer, [0, .01, -.18], [0, 0, 0], shotgunModel);
+    part(new THREE.CylinderGeometry(.048, .048, .92, 12), gunMetal, [0, .02, -.92], [Math.PI / 2, 0, 0], shotgunModel);
+    part(new THREE.CylinderGeometry(.07, .06, .12, 12), gunDark, [0, .02, -1.43], [Math.PI / 2, 0, 0], shotgunModel);
+    part(new THREE.BoxGeometry(.13, .25, .15), gunDark, [0, -.15, .16], [.18, 0, 0], shotgunModel);
+    part(new THREE.BoxGeometry(.05, .1, .2), gunMetal, [0, .17, -.31], [0, 0, 0], shotgunModel);
+    part(new THREE.CylinderGeometry(.09, .1, .42, 8), sleeve, [-.19, -.25, -.34], [0, 0, -.44], weapon);
+    part(new THREE.CylinderGeometry(.09, .11, .38, 8), sleeve, [.18, -.27, -.06], [0, 0, .44], weapon);
+    part(new THREE.CylinderGeometry(.065, .075, .3, 8), skin, [-.12, -.16, -.57], [0, 0, -.55], weapon);
+    part(new THREE.CylinderGeometry(.065, .075, .27, 8), skin, [.1, -.17, -.19], [0, 0, .55], weapon);
     const flashMat = new THREE.MeshBasicMaterial({ color: 0xffdf8a, transparent: true, opacity: .95, blending: THREE.AdditiveBlending });
     const flash = new THREE.Mesh(new THREE.ConeGeometry(.14, .45, 8), flashMat); flash.rotation.x = -Math.PI / 2; flash.position.set(0, .01, -1.53); flash.visible = false; weapon.add(flash);
     const flashLight = new THREE.PointLight(0xffad5c, 0, 5, 2); flashLight.position.set(0, .02, -1.42); weapon.add(flashLight);
 
     function showToast(message) { toast.textContent = message; toast.style.opacity = "1"; toastTimer = performance.now() + 950; }
-    function updateAmmo() { ammoReadout.innerHTML = `${String(ammo).padStart(2, "0")} <small>/ ${String(reserve).padStart(3, "0")}</small>`; }
-    function reload() { if (ammo === 30 || reserve === 0) return; const needed = 30 - ammo; const load = Math.min(needed, reserve); ammo += load; reserve -= load; weaponLabel.textContent = "CARBINE // READY"; showToast("MAGAZINE LOADED"); updateAmmo(); }
-    function muzzle() { flash.visible = true; flashLight.intensity = 14; setTimeout(() => { flash.visible = false; flashLight.intensity = 0; }, 55); }
-    function tracer(origin, direction) { const end = origin.clone().addScaledVector(direction, 28); const line = new THREE.Line(new THREE.BufferGeometry().setFromPoints([origin, end]), new THREE.LineBasicMaterial({ color: 0xffd58a, transparent: true, opacity: .72 })); scene.add(line); setTimeout(() => scene.remove(line), 55); }
+    function currentWeapon() { return weapons[activeWeapon]; }
+    function updateAmmo() { const gun = currentWeapon(); ammoReadout.innerHTML = `${String(gun.ammo).padStart(2, "0")} <small>/ ${String(gun.reserve).padStart(3, "0")}</small>`; }
+    function updateWeaponUI() { const gun = currentWeapon(); arModel.visible = activeWeapon === "ar"; shotgunModel.visible = activeWeapon === "shotgun"; weapon.position.set(activeWeapon === "ar" ? .28 : .34, -.25, activeWeapon === "ar" ? -.52 : -.55); modeLabel.textContent = gun.name; modeSub.textContent = gun.automatic ? "SEMI / AUTO TRAINING" : "PUMP ACTION // TRAINING"; weaponLabel.textContent = `${gun.label} // READY`; updateAmmo(); }
+    function switchWeapon(step) { if (!locked) return; const order = ["ar", "shotgun"]; const next = (order.indexOf(activeWeapon) + step + order.length) % order.length; activeWeapon = order[next]; nextShot = 0; shooting = false; updateWeaponUI(); showToast(`SWITCHED TO ${currentWeapon().name}`); }
+    function reload() { const gun = currentWeapon(); if (gun.ammo === gun.capacity || gun.reserve === 0) return; const needed = gun.capacity - gun.ammo; const load = Math.min(needed, gun.reserve); gun.ammo += load; gun.reserve -= load; weaponLabel.textContent = `${gun.label} // READY`; showToast(activeWeapon === "shotgun" ? "SHELLS LOADED" : "MAGAZINE LOADED"); updateAmmo(); }
+    function muzzle() { const gun = currentWeapon(); flash.material.color.setHex(gun.color); flash.position.z = gun.muzzleZ; flash.scale.setScalar(activeWeapon === "shotgun" ? 1.45 : 1); flashLight.color.setHex(gun.color); flash.visible = true; flashLight.intensity = activeWeapon === "shotgun" ? 20 : 14; setTimeout(() => { flash.visible = false; flashLight.intensity = 0; }, activeWeapon === "shotgun" ? 85 : 55); }
+    function tracer(origin, direction, color) { const end = origin.clone().addScaledVector(direction, 28); const line = new THREE.Line(new THREE.BufferGeometry().setFromPoints([origin, end]), new THREE.LineBasicMaterial({ color, transparent: true, opacity: .72 })); scene.add(line); setTimeout(() => scene.remove(line), 55); }
     function impact(point, normal) { const mark = new THREE.Mesh(new THREE.SphereGeometry(.045, 8, 8), new THREE.MeshBasicMaterial({ color: 0xff9d53 })); mark.position.copy(point).addScaledVector(normal, .012); scene.add(mark); const glow = new THREE.PointLight(0xff8a42, 3, 1.4, 2); glow.position.copy(point); scene.add(glow); setTimeout(() => { scene.remove(mark); scene.remove(glow); }, 480); }
     function shoot() {
       const now = performance.now();
       if (now < nextShot || !locked) return;
-      nextShot = now + 105;
-      if (ammo <= 0) { weaponLabel.textContent = "CARBINE // EMPTY"; showToast("PRESS R TO RELOAD"); return; }
-      ammo--; updateAmmo(); muzzle();
+      const gun = currentWeapon();
+      nextShot = now + gun.fireDelay;
+      if (gun.ammo <= 0) { weaponLabel.textContent = `${gun.label} // EMPTY`; showToast("PRESS R TO RELOAD"); return; }
+      gun.ammo--; updateAmmo(); muzzle();
       const origin = new THREE.Vector3(); weapon.getWorldPosition(origin);
-      const direction = new THREE.Vector3(); camera.getWorldDirection(direction); tracer(origin, direction);
-      const ray = new THREE.Raycaster(camera.position, direction, .1, 40);
-      const hit = ray.intersectObjects(room.children, false)[0];
-      if (hit) impact(hit.point, hit.face?.normal || new THREE.Vector3(0, 1, 0));
+      const direction = new THREE.Vector3(); camera.getWorldDirection(direction);
+      for (let pellet = 0; pellet < gun.pellets; pellet++) {
+        const pelletDirection = direction.clone();
+        if (gun.spread) { pelletDirection.x += (Math.random() - .5) * gun.spread; pelletDirection.y += (Math.random() - .5) * gun.spread; pelletDirection.normalize(); }
+        tracer(origin, pelletDirection, gun.color);
+        const ray = new THREE.Raycaster(camera.position, pelletDirection, .1, 40);
+        const hit = ray.intersectObjects(room.children, false)[0];
+        if (hit) impact(hit.point, hit.face?.normal || new THREE.Vector3(0, 1, 0));
+      }
     }
     function onMouseMove(event) { if (!locked) return; player.yaw -= event.movementX * .0022; player.pitch -= event.movementY * .0022; player.pitch = THREE.MathUtils.clamp(player.pitch, -1.42, 1.42); }
     function onKey(event, down) { keys[down ? "add" : "delete"](event.code); if (down && event.code === "KeyR") reload(); }
@@ -174,6 +198,7 @@
     document.addEventListener("keyup", event => onKey(event, false));
     document.addEventListener("mousedown", event => { if (event.button === 0) { shooting = true; shoot(); } });
     document.addEventListener("mouseup", event => { if (event.button === 0) shooting = false; });
+    document.addEventListener("wheel", event => { if (locked) { event.preventDefault(); switchWeapon(event.deltaY > 0 ? 1 : -1); } }, { passive: false });
     window.addEventListener("blur", () => { shooting = false; keys.clear(); });
     window.addEventListener("resize", () => { camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); renderer.setSize(innerWidth, innerHeight); });
 
@@ -190,12 +215,12 @@
         player.position.add(move); player.position.x = THREE.MathUtils.clamp(player.position.x, -8.3, 8.3); player.position.z = THREE.MathUtils.clamp(player.position.z, -7.3, 7.3);
         camera.position.copy(player.position); camera.rotation.y = player.yaw; camera.rotation.x = player.pitch;
         weapon.position.y = -.25 + Math.sin(performance.now() * .008) * .002;
-        if (shooting) shoot();
+        if (shooting && currentWeapon().automatic) shoot();
       }
       if (toastTimer && performance.now() > toastTimer) { toast.style.opacity = "0"; toastTimer = 0; }
       renderer.render(scene, camera);
     }
-    updateAmmo(); tick();
+    updateWeaponUI(); tick();
   </script>
 </body>
 </html>
