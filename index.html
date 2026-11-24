@@ -116,6 +116,8 @@
     const player = { position: new THREE.Vector3(0, 1.7, 4.6), yaw: 0, pitch: 0, speed: 4.2 };
     let targetYaw = 0;
     let targetPitch = 0;
+    let lookInputX = 0;
+    let lookInputY = 0;
     camera.position.copy(player.position);
     const keys = new Set();
     let locked = false;
@@ -199,10 +201,9 @@
       if (!locked || performance.now() < ignoreMouseUntil) return;
       const dx = THREE.MathUtils.clamp(Number.isFinite(event.movementX) ? event.movementX : 0, -80, 80);
       const dy = THREE.MathUtils.clamp(Number.isFinite(event.movementY) ? event.movementY : 0, -80, 80);
-      targetYaw -= dx * .0022;
-      targetPitch -= dy * .0022;
-      targetYaw = THREE.MathUtils.euclideanModulo(targetYaw + Math.PI, Math.PI * 2) - Math.PI;
-      targetPitch = THREE.MathUtils.clamp(targetPitch, -1.42, 1.42);
+      if (Math.abs(dx) > 28 || Math.abs(dy) > 28) return;
+      lookInputX += dx * .0018;
+      lookInputY += dy * .0018;
     }
     function updateFullscreenButton() { const active = Boolean(document.fullscreenElement); fullscreenButton.textContent = active ? "EXIT FULLSCREEN [F]" : "FULLSCREEN [F]"; }
     async function toggleFullscreen() { try { if (document.fullscreenElement) await document.exitFullscreen(); else await document.documentElement.requestFullscreen(); } catch { showToast("FULLSCREEN UNAVAILABLE"); } updateFullscreenButton(); }
@@ -210,7 +211,7 @@
     function lock() { renderer.domElement.requestPointerLock(); }
     enter.addEventListener("click", lock);
     renderer.domElement.addEventListener("click", () => { if (!locked) lock(); });
-    document.addEventListener("pointerlockchange", () => { locked = document.pointerLockElement === renderer.domElement; targetYaw = player.yaw; targetPitch = player.pitch; ignoreMouseUntil = performance.now() + 260; if (!locked) shooting = false; start.classList.toggle("hide", locked); });
+    document.addEventListener("pointerlockchange", () => { locked = document.pointerLockElement === renderer.domElement; targetYaw = player.yaw; targetPitch = player.pitch; lookInputX = 0; lookInputY = 0; ignoreMouseUntil = performance.now() + 260; if (!locked) shooting = false; start.classList.toggle("hide", locked); });
     document.addEventListener("mousemove", onMouseMove);
     document.addEventListener("keydown", event => onKey(event, true));
     document.addEventListener("keyup", event => onKey(event, false));
@@ -220,7 +221,7 @@
     document.addEventListener("fullscreenchange", updateFullscreenButton);
     fullscreenButton.addEventListener("click", event => { event.stopPropagation(); toggleFullscreen(); });
     document.addEventListener("keydown", event => { if (event.code === "KeyF" && !event.repeat) toggleFullscreen(); });
-    window.addEventListener("blur", () => { shooting = false; keys.clear(); targetYaw = player.yaw; targetPitch = player.pitch; ignoreMouseUntil = performance.now() + 320; });
+    window.addEventListener("blur", () => { shooting = false; keys.clear(); targetYaw = player.yaw; targetPitch = player.pitch; lookInputX = 0; lookInputY = 0; ignoreMouseUntil = performance.now() + 320; });
     window.addEventListener("resize", () => { camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); renderer.setSize(innerWidth, innerHeight); });
 
     const clock = new THREE.Clock();
@@ -234,6 +235,12 @@
         if (keys.has("KeyW")) move.add(forward); if (keys.has("KeyS")) move.sub(forward); if (keys.has("KeyD")) move.add(right); if (keys.has("KeyA")) move.sub(right);
         if (move.lengthSq()) move.normalize().multiplyScalar(player.speed * delta);
         player.position.add(move); player.position.x = THREE.MathUtils.clamp(player.position.x, -8.3, 8.3); player.position.z = THREE.MathUtils.clamp(player.position.z, -7.3, 7.3);
+        const maxLookStep = .055;
+        const yawStep = THREE.MathUtils.clamp(lookInputX, -maxLookStep, maxLookStep);
+        const pitchStep = THREE.MathUtils.clamp(lookInputY, -maxLookStep, maxLookStep);
+        lookInputX -= yawStep; lookInputY -= pitchStep;
+        targetYaw = THREE.MathUtils.euclideanModulo(targetYaw - yawStep + Math.PI, Math.PI * 2) - Math.PI;
+        targetPitch = THREE.MathUtils.clamp(targetPitch - pitchStep, -1.42, 1.42);
         const viewBlend = 1 - Math.exp(-22 * delta);
         player.yaw = lerpAngle(player.yaw, targetYaw, viewBlend);
         player.pitch = THREE.MathUtils.lerp(player.pitch, targetPitch, viewBlend);
