@@ -110,6 +110,8 @@
     const side = new THREE.PointLight(0xffa04f, 3.5, 10, 2); side.position.set(-6, 3.2, 4); scene.add(side);
 
     const player = { position: new THREE.Vector3(0, 1.7, 4.6), yaw: 0, pitch: 0, speed: 4.2 };
+    let targetYaw = 0;
+    let targetPitch = 0;
     camera.position.copy(player.position);
     const keys = new Set();
     let locked = false;
@@ -192,23 +194,23 @@
       if (!locked || performance.now() < ignoreMouseUntil) return;
       const dx = THREE.MathUtils.clamp(Number.isFinite(event.movementX) ? event.movementX : 0, -80, 80);
       const dy = THREE.MathUtils.clamp(Number.isFinite(event.movementY) ? event.movementY : 0, -80, 80);
-      player.yaw -= dx * .0022;
-      player.pitch -= dy * .0022;
-      player.yaw = THREE.MathUtils.euclideanModulo(player.yaw + Math.PI, Math.PI * 2) - Math.PI;
-      player.pitch = THREE.MathUtils.clamp(player.pitch, -1.42, 1.42);
+      targetYaw -= dx * .0022;
+      targetPitch -= dy * .0022;
+      targetYaw = THREE.MathUtils.euclideanModulo(targetYaw + Math.PI, Math.PI * 2) - Math.PI;
+      targetPitch = THREE.MathUtils.clamp(targetPitch, -1.42, 1.42);
     }
     function onKey(event, down) { keys[down ? "add" : "delete"](event.code); if (down && event.code === "KeyR") reload(); }
     function lock() { renderer.domElement.requestPointerLock(); }
     enter.addEventListener("click", lock);
     renderer.domElement.addEventListener("click", () => { if (!locked) lock(); });
-    document.addEventListener("pointerlockchange", () => { locked = document.pointerLockElement === renderer.domElement; ignoreMouseUntil = performance.now() + 180; if (!locked) shooting = false; start.classList.toggle("hide", locked); });
+    document.addEventListener("pointerlockchange", () => { locked = document.pointerLockElement === renderer.domElement; targetYaw = player.yaw; targetPitch = player.pitch; ignoreMouseUntil = performance.now() + 260; if (!locked) shooting = false; start.classList.toggle("hide", locked); });
     document.addEventListener("mousemove", onMouseMove);
     document.addEventListener("keydown", event => onKey(event, true));
     document.addEventListener("keyup", event => onKey(event, false));
     document.addEventListener("mousedown", event => { if (event.button === 0) { shooting = true; shoot(); } });
     document.addEventListener("mouseup", event => { if (event.button === 0) shooting = false; });
     document.addEventListener("wheel", event => { if (locked) { event.preventDefault(); switchWeapon(event.deltaY > 0 ? 1 : -1); } }, { passive: false });
-    window.addEventListener("blur", () => { shooting = false; keys.clear(); ignoreMouseUntil = performance.now() + 250; });
+    window.addEventListener("blur", () => { shooting = false; keys.clear(); targetYaw = player.yaw; targetPitch = player.pitch; ignoreMouseUntil = performance.now() + 320; });
     window.addEventListener("resize", () => { camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); renderer.setSize(innerWidth, innerHeight); });
 
     const clock = new THREE.Clock();
@@ -222,6 +224,9 @@
         if (keys.has("KeyW")) move.add(forward); if (keys.has("KeyS")) move.sub(forward); if (keys.has("KeyD")) move.add(right); if (keys.has("KeyA")) move.sub(right);
         if (move.lengthSq()) move.normalize().multiplyScalar(player.speed * delta);
         player.position.add(move); player.position.x = THREE.MathUtils.clamp(player.position.x, -8.3, 8.3); player.position.z = THREE.MathUtils.clamp(player.position.z, -7.3, 7.3);
+        const viewBlend = 1 - Math.exp(-22 * delta);
+        player.yaw = THREE.MathUtils.lerpAngle(player.yaw, targetYaw, viewBlend);
+        player.pitch = THREE.MathUtils.lerp(player.pitch, targetPitch, viewBlend);
         camera.position.copy(player.position); camera.rotation.y = player.yaw; camera.rotation.x = player.pitch;
         weapon.position.y = -.25 + Math.sin(performance.now() * .008) * .002;
         if (shooting && currentWeapon().automatic) shoot();
