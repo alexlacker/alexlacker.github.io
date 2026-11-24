@@ -3,7 +3,199 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title></title>
+  <title>ROOM // AR TRAINING</title>
+  <style>
+    :root { color-scheme: dark; --cyan: #8fe8ff; --orange: #ffb35a; }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; width: 100%; height: 100%; overflow: hidden; background: #070a0f; font-family: "Segoe UI", system-ui, sans-serif; }
+    body { color: #edf7ff; }
+    #game { position: fixed; inset: 0; }
+    #hud { position: fixed; inset: 0; pointer-events: none; text-transform: uppercase; letter-spacing: .16em; }
+    #top-left { position: absolute; top: 24px; left: 28px; display: grid; gap: 8px; }
+    .eyebrow { color: var(--cyan); font-size: 11px; font-weight: 700; }
+    .status { color: #fff; font-size: 18px; font-weight: 800; letter-spacing: .09em; text-shadow: 0 0 14px #8fe8ff55; }
+    #hint { color: #c2d1dc; font-size: 10px; letter-spacing: .12em; opacity: .78; }
+    #top-right { position: absolute; top: 24px; right: 28px; color: var(--cyan); font-size: 11px; text-align: right; }
+    #top-right span { display: block; margin-top: 6px; color: #b7c5cf; font-size: 10px; }
+    #bottom-right { position: absolute; right: 28px; bottom: 24px; text-align: right; }
+    #ammo { color: #fff; font-size: 36px; line-height: 1; font-weight: 800; letter-spacing: .04em; text-shadow: 0 0 18px #fff4; }
+    #ammo small { color: #92a2ae; font-size: 14px; letter-spacing: .18em; }
+    #weapon-label { color: var(--orange); margin-top: 8px; font-size: 10px; font-weight: 700; }
+    #crosshair { position: absolute; left: 50%; top: 50%; width: 22px; height: 22px; transform: translate(-50%, -50%); opacity: .88; }
+    #crosshair::before, #crosshair::after { content: ""; position: absolute; background: rgba(229, 247, 255, .95); box-shadow: 0 0 8px #8fe8ff; }
+    #crosshair::before { left: 10px; top: 0; width: 2px; height: 22px; }
+    #crosshair::after { left: 0; top: 10px; width: 22px; height: 2px; }
+    #toast { position: absolute; left: 50%; bottom: 22%; transform: translateX(-50%); color: var(--orange); font-size: 12px; font-weight: 800; opacity: 0; transition: opacity .16s; text-shadow: 0 0 14px #ffb35a; }
+    #start { position: fixed; inset: 0; display: grid; place-items: center; background: radial-gradient(circle at center, #172631cc, #05070bcc 62%); cursor: pointer; }
+    #start-card { width: min(520px, calc(100vw - 48px)); padding: 34px; border: 1px solid #8fe8ff55; background: #081018cc; box-shadow: 0 22px 80px #0008, inset 0 0 60px #8fe8ff09; text-align: center; }
+    #start-card .kicker { color: var(--cyan); font-size: 11px; letter-spacing: .22em; font-weight: 800; }
+    #start-card h1 { margin: 12px 0 10px; font-size: clamp(34px, 8vw, 68px); line-height: .9; letter-spacing: .08em; }
+    #start-card p { margin: 0 auto 22px; max-width: 380px; color: #bac8d2; font-size: 12px; line-height: 1.7; letter-spacing: .05em; }
+    #start-card button { border: 1px solid var(--cyan); color: #071017; background: var(--cyan); padding: 13px 20px; font: inherit; font-size: 11px; font-weight: 900; letter-spacing: .18em; cursor: pointer; }
+    #start-card button:hover { background: #fff; border-color: #fff; }
+    .hide { display: none !important; }
+    @media (max-width: 650px) { #top-left { top: 16px; left: 16px; } #top-right, #bottom-right { right: 16px; } #hint { max-width: 180px; line-height: 1.5; } }
+  </style>
 </head>
-<body></body>
+<body>
+  <div id="game"></div>
+  <div id="hud">
+    <div id="top-left"><div class="eyebrow">LIVE FIRE // SIMULATION 01</div><div class="status">ROOM CLEAR</div><div id="hint">WASD move · mouse look · hold click to fire · R reload</div></div>
+    <div id="top-right">AR-15 <span>SEMI / AUTO TRAINING</span></div>
+    <div id="crosshair"></div>
+    <div id="toast"></div>
+    <div id="bottom-right"><div id="ammo">30 <small>/ 120</small></div><div id="weapon-label">CARBINE // READY</div></div>
+  </div>
+  <div id="start">
+    <div id="start-card">
+      <div class="kicker">FIRST-PERSON RANGE</div>
+      <h1>EMPTY ROOM</h1>
+      <p>One operator. One AR. No targets. Step into the room and test the lighting, movement, and impact response.</p>
+      <button id="enter">CLICK TO ENTER</button>
+    </div>
+  </div>
+
+  <script type="module">
+    import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js";
+
+    const mount = document.getElementById("game");
+    const start = document.getElementById("start");
+    const enter = document.getElementById("enter");
+    const toast = document.getElementById("toast");
+    const ammoReadout = document.getElementById("ammo");
+    const weaponLabel = document.getElementById("weapon-label");
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x070a0f);
+    scene.fog = new THREE.Fog(0x070a0f, 8, 25);
+
+    const camera = new THREE.PerspectiveCamera(74, innerWidth / innerHeight, 0.05, 60);
+    camera.rotation.order = "YXZ";
+    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+    renderer.setSize(innerWidth, innerHeight);
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.05;
+    mount.appendChild(renderer.domElement);
+
+    const room = new THREE.Group();
+    scene.add(room);
+    const floorMat = new THREE.MeshStandardMaterial({ color: 0x18232a, roughness: .78, metalness: .14 });
+    const wallMat = new THREE.MeshStandardMaterial({ color: 0x27343b, roughness: .86, metalness: .04 });
+    const ceilingMat = new THREE.MeshStandardMaterial({ color: 0x121b20, roughness: .9 });
+    const trimMat = new THREE.MeshStandardMaterial({ color: 0x43545c, roughness: .55, metalness: .32 });
+    const floor = new THREE.Mesh(new THREE.BoxGeometry(18, .2, 16), floorMat);
+    floor.position.set(0, -.1, 0); floor.receiveShadow = true; room.add(floor);
+    const ceiling = new THREE.Mesh(new THREE.BoxGeometry(18, .2, 16), ceilingMat);
+    ceiling.position.set(0, 9, 0); room.add(ceiling);
+    const wallBack = new THREE.Mesh(new THREE.BoxGeometry(18, 9, .2), wallMat); wallBack.position.set(0, 4.5, -8); wallBack.receiveShadow = true; room.add(wallBack);
+    const wallFront = new THREE.Mesh(new THREE.BoxGeometry(18, 9, .2), wallMat); wallFront.position.set(0, 4.5, 8); wallFront.receiveShadow = true; room.add(wallFront);
+    const wallLeft = new THREE.Mesh(new THREE.BoxGeometry(.2, 9, 16), wallMat); wallLeft.position.set(-9, 4.5, 0); wallLeft.receiveShadow = true; room.add(wallLeft);
+    const wallRight = new THREE.Mesh(new THREE.BoxGeometry(.2, 9, 16), wallMat); wallRight.position.set(9, 4.5, 0); wallRight.receiveShadow = true; room.add(wallRight);
+
+    const stripMat = new THREE.MeshStandardMaterial({ color: 0x6b8189, emissive: 0x233f47, emissiveIntensity: 1.4, metalness: .5, roughness: .42 });
+    for (const z of [-7.88, 7.88]) { const strip = new THREE.Mesh(new THREE.BoxGeometry(17.2, .08, .06), stripMat); strip.position.set(0, .25, z); room.add(strip); }
+    for (const x of [-8.88, 8.88]) { const strip = new THREE.Mesh(new THREE.BoxGeometry(.06, .08, 15.2), stripMat); strip.position.set(x, .25, 0); room.add(strip); }
+
+    const lightPanelMat = new THREE.MeshBasicMaterial({ color: 0xbfeeff });
+    for (const x of [-4.6, 0, 4.6]) {
+      const panel = new THREE.Mesh(new THREE.BoxGeometry(2.4, .05, .55), lightPanelMat);
+      panel.position.set(x, 8.87, -1.4); room.add(panel);
+      const light = new THREE.PointLight(0xa6dfff, 18, 13, 1.65); light.position.set(x, 8.2, -1.4); light.castShadow = true; room.add(light);
+    }
+    const fill = new THREE.HemisphereLight(0x91b4c8, 0x0b0d11, 1.2); scene.add(fill);
+    const side = new THREE.PointLight(0xffa04f, 3.5, 10, 2); side.position.set(-6, 3.2, 4); scene.add(side);
+
+    const player = { position: new THREE.Vector3(0, 1.7, 4.6), yaw: 0, pitch: 0, speed: 4.2 };
+    camera.position.copy(player.position);
+    const keys = new Set();
+    let locked = false;
+    let shooting = false;
+    let ammo = 30;
+    let reserve = 120;
+    let nextShot = 0;
+    let toastTimer = 0;
+
+    const weapon = new THREE.Group();
+    weapon.position.set(.28, -.25, -.52);
+    camera.add(weapon);
+    scene.add(camera);
+    const gunMetal = new THREE.MeshStandardMaterial({ color: 0x171a1d, roughness: .45, metalness: .78 });
+    const gunDark = new THREE.MeshStandardMaterial({ color: 0x080a0c, roughness: .62, metalness: .55 });
+    const polymer = new THREE.MeshStandardMaterial({ color: 0x242a2d, roughness: .82, metalness: .08 });
+    const skin = new THREE.MeshStandardMaterial({ color: 0x9e6b4f, roughness: .9 });
+    const sleeve = new THREE.MeshStandardMaterial({ color: 0x4b5960, roughness: .95 });
+    function part(geometry, material, position, rotation = [0, 0, 0]) { const mesh = new THREE.Mesh(geometry, material); mesh.position.set(...position); mesh.rotation.set(...rotation); mesh.castShadow = true; weapon.add(mesh); return mesh; }
+    part(new THREE.BoxGeometry(.18, .18, .58), gunMetal, [0, 0, 0]);
+    part(new THREE.BoxGeometry(.14, .14, .4), polymer, [0, .01, -.46]);
+    part(new THREE.BoxGeometry(.12, .16, .34), polymer, [0, -.02, .33]);
+    part(new THREE.BoxGeometry(.15, .25, .16), gunDark, [0, -.16, .02], [.22, 0, 0]);
+    part(new THREE.BoxGeometry(.1, .26, .12), gunDark, [0, -.12, .27], [-.18, 0, 0]);
+    part(new THREE.CylinderGeometry(.035, .035, .7, 12), gunMetal, [0, .01, -.93], [Math.PI / 2, 0, 0]);
+    part(new THREE.CylinderGeometry(.06, .05, .11, 12), gunDark, [0, .01, -1.31], [Math.PI / 2, 0, 0]);
+    part(new THREE.BoxGeometry(.08, .06, .42), gunDark, [0, .15, -.1]);
+    part(new THREE.BoxGeometry(.035, .07, .1), gunMetal, [0, .2, -.34]);
+    part(new THREE.BoxGeometry(.04, .1, .06), gunMetal, [0, .22, -.84]);
+    const leftSleeve = part(new THREE.CylinderGeometry(.09, .11, .42, 8), sleeve, [-.19, -.25, -.34], [0, 0, -.44]);
+    const rightSleeve = part(new THREE.CylinderGeometry(.09, .11, .38, 8), sleeve, [.18, -.27, -.06], [0, 0, .44]);
+    part(new THREE.CylinderGeometry(.065, .075, .3, 8), skin, [-.12, -.16, -.57], [0, 0, -.55]);
+    part(new THREE.CylinderGeometry(.065, .075, .27, 8), skin, [.1, -.17, -.19], [0, 0, .55]);
+    const flashMat = new THREE.MeshBasicMaterial({ color: 0xffdf8a, transparent: true, opacity: .95, blending: THREE.AdditiveBlending });
+    const flash = new THREE.Mesh(new THREE.ConeGeometry(.14, .45, 8), flashMat); flash.rotation.x = -Math.PI / 2; flash.position.set(0, .01, -1.53); flash.visible = false; weapon.add(flash);
+    const flashLight = new THREE.PointLight(0xffad5c, 0, 5, 2); flashLight.position.set(0, .02, -1.42); weapon.add(flashLight);
+
+    function showToast(message) { toast.textContent = message; toast.style.opacity = "1"; toastTimer = performance.now() + 950; }
+    function updateAmmo() { ammoReadout.innerHTML = `${String(ammo).padStart(2, "0")} <small>/ ${String(reserve).padStart(3, "0")}</small>`; }
+    function reload() { if (ammo === 30 || reserve === 0) return; const needed = 30 - ammo; const load = Math.min(needed, reserve); ammo += load; reserve -= load; weaponLabel.textContent = "CARBINE // READY"; showToast("MAGAZINE LOADED"); updateAmmo(); }
+    function muzzle() { flash.visible = true; flashLight.intensity = 14; setTimeout(() => { flash.visible = false; flashLight.intensity = 0; }, 55); }
+    function tracer(origin, direction) { const end = origin.clone().addScaledVector(direction, 28); const line = new THREE.Line(new THREE.BufferGeometry().setFromPoints([origin, end]), new THREE.LineBasicMaterial({ color: 0xffd58a, transparent: true, opacity: .72 })); scene.add(line); setTimeout(() => scene.remove(line), 55); }
+    function impact(point, normal) { const mark = new THREE.Mesh(new THREE.SphereGeometry(.045, 8, 8), new THREE.MeshBasicMaterial({ color: 0xff9d53 })); mark.position.copy(point).addScaledVector(normal, .012); scene.add(mark); const glow = new THREE.PointLight(0xff8a42, 3, 1.4, 2); glow.position.copy(point); scene.add(glow); setTimeout(() => { scene.remove(mark); scene.remove(glow); }, 480); }
+    function shoot() {
+      const now = performance.now();
+      if (now < nextShot || !locked) return;
+      nextShot = now + 105;
+      if (ammo <= 0) { weaponLabel.textContent = "CARBINE // EMPTY"; showToast("PRESS R TO RELOAD"); return; }
+      ammo--; updateAmmo(); muzzle();
+      const origin = new THREE.Vector3(); weapon.getWorldPosition(origin);
+      const direction = new THREE.Vector3(); camera.getWorldDirection(direction); tracer(origin, direction);
+      const ray = new THREE.Raycaster(camera.position, direction, .1, 40);
+      const hit = ray.intersectObjects(room.children, false)[0];
+      if (hit) impact(hit.point, hit.face?.normal || new THREE.Vector3(0, 1, 0));
+    }
+    function onMouseMove(event) { if (!locked) return; player.yaw -= event.movementX * .0022; player.pitch -= event.movementY * .0022; player.pitch = THREE.MathUtils.clamp(player.pitch, -1.42, 1.42); }
+    function onKey(event, down) { keys[down ? "add" : "delete"](event.code); if (down && event.code === "KeyR") reload(); }
+    function lock() { renderer.domElement.requestPointerLock(); }
+    enter.addEventListener("click", lock);
+    renderer.domElement.addEventListener("click", () => { if (!locked) lock(); });
+    document.addEventListener("pointerlockchange", () => { locked = document.pointerLockElement === renderer.domElement; start.classList.toggle("hide", locked); });
+    document.addEventListener("mousemove", onMouseMove);
+    document.addEventListener("keydown", event => onKey(event, true));
+    document.addEventListener("keyup", event => onKey(event, false));
+    document.addEventListener("mousedown", event => { if (event.button === 0) { shooting = true; shoot(); } });
+    document.addEventListener("mouseup", event => { if (event.button === 0) shooting = false; });
+    window.addEventListener("blur", () => { shooting = false; keys.clear(); });
+    window.addEventListener("resize", () => { camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); renderer.setSize(innerWidth, innerHeight); });
+
+    const clock = new THREE.Clock();
+    function tick() {
+      requestAnimationFrame(tick);
+      const delta = Math.min(clock.getDelta(), .05);
+      if (locked) {
+        const forward = new THREE.Vector3(-Math.sin(player.yaw), 0, -Math.cos(player.yaw));
+        const right = new THREE.Vector3(Math.cos(player.yaw), 0, -Math.sin(player.yaw));
+        const move = new THREE.Vector3();
+        if (keys.has("KeyW")) move.add(forward); if (keys.has("KeyS")) move.sub(forward); if (keys.has("KeyD")) move.add(right); if (keys.has("KeyA")) move.sub(right);
+        if (move.lengthSq()) move.normalize().multiplyScalar(player.speed * delta);
+        player.position.add(move); player.position.x = THREE.MathUtils.clamp(player.position.x, -8.3, 8.3); player.position.z = THREE.MathUtils.clamp(player.position.z, -7.3, 7.3);
+        camera.position.copy(player.position); camera.rotation.y = player.yaw; camera.rotation.x = player.pitch;
+        weapon.position.y = -.25 + Math.sin(performance.now() * .008) * .002;
+        if (shooting) shoot();
+      }
+      if (toastTimer && performance.now() > toastTimer) { toast.style.opacity = "0"; toastTimer = 0; }
+      renderer.render(scene, camera);
+    }
+    updateAmmo(); tick();
+  </script>
+</body>
 </html>
