@@ -113,6 +113,7 @@
     camera.position.copy(player.position);
     const keys = new Set();
     let locked = false;
+    let ignoreMouseUntil = 0;
     let shooting = false;
     const weapons = {
       ar: { name: "AR-15", label: "CARBINE", ammo: 30, reserve: 120, capacity: 30, fireDelay: 105, automatic: true, pellets: 1, spread: 0, muzzleZ: -1.53, color: 0xffdf8a },
@@ -187,19 +188,27 @@
         if (hit) impact(hit.point, hit.face?.normal || new THREE.Vector3(0, 1, 0));
       }
     }
-    function onMouseMove(event) { if (!locked) return; player.yaw -= event.movementX * .0022; player.pitch -= event.movementY * .0022; player.pitch = THREE.MathUtils.clamp(player.pitch, -1.42, 1.42); }
+    function onMouseMove(event) {
+      if (!locked || performance.now() < ignoreMouseUntil) return;
+      const dx = THREE.MathUtils.clamp(Number.isFinite(event.movementX) ? event.movementX : 0, -80, 80);
+      const dy = THREE.MathUtils.clamp(Number.isFinite(event.movementY) ? event.movementY : 0, -80, 80);
+      player.yaw -= dx * .0022;
+      player.pitch -= dy * .0022;
+      player.yaw = THREE.MathUtils.euclideanModulo(player.yaw + Math.PI, Math.PI * 2) - Math.PI;
+      player.pitch = THREE.MathUtils.clamp(player.pitch, -1.42, 1.42);
+    }
     function onKey(event, down) { keys[down ? "add" : "delete"](event.code); if (down && event.code === "KeyR") reload(); }
     function lock() { renderer.domElement.requestPointerLock(); }
     enter.addEventListener("click", lock);
     renderer.domElement.addEventListener("click", () => { if (!locked) lock(); });
-    document.addEventListener("pointerlockchange", () => { locked = document.pointerLockElement === renderer.domElement; start.classList.toggle("hide", locked); });
+    document.addEventListener("pointerlockchange", () => { locked = document.pointerLockElement === renderer.domElement; ignoreMouseUntil = performance.now() + 180; if (!locked) shooting = false; start.classList.toggle("hide", locked); });
     document.addEventListener("mousemove", onMouseMove);
     document.addEventListener("keydown", event => onKey(event, true));
     document.addEventListener("keyup", event => onKey(event, false));
     document.addEventListener("mousedown", event => { if (event.button === 0) { shooting = true; shoot(); } });
     document.addEventListener("mouseup", event => { if (event.button === 0) shooting = false; });
     document.addEventListener("wheel", event => { if (locked) { event.preventDefault(); switchWeapon(event.deltaY > 0 ? 1 : -1); } }, { passive: false });
-    window.addEventListener("blur", () => { shooting = false; keys.clear(); });
+    window.addEventListener("blur", () => { shooting = false; keys.clear(); ignoreMouseUntil = performance.now() + 250; });
     window.addEventListener("resize", () => { camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); renderer.setSize(innerWidth, innerHeight); });
 
     const clock = new THREE.Clock();
